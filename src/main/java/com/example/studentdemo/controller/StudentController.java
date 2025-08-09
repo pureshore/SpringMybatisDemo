@@ -1,7 +1,9 @@
 package com.example.studentdemo.controller;
 
+import com.example.studentdemo.entity.BaseResponse;
 import com.example.studentdemo.entity.Student;
 import com.example.studentdemo.service.StudentService;
+import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 import java.util.List;
@@ -35,9 +37,26 @@ public class StudentController {
         return "{\"status\": \"success\", \"message\": \"学生删除成功\"}";
     }
 
-    @GetMapping("/{id}")
-    public Student getStudent(@PathVariable Long id) {
-        return studentService.getStudentById(id);
+    @GetMapping("/id")
+    public BaseResponse getStudent(@RequestParam(required = false) Long id, HttpServletRequest request) {
+        // 从header中获取token
+        String token = request.getHeader("accessToken");
+
+        // 校验token
+        if (token == null || token.isEmpty()) {
+            return BaseResponse.error("token不能为空");
+        }
+
+        // 简单的token校验，实际项目中可能需要更复杂的逻辑
+        if (!"valid-token".equals(token)) {
+            return BaseResponse.error("token无效");
+        }
+        if (id == null) {
+            return BaseResponse.error("id入参为空");
+        }
+
+        Student student = studentService.getStudentById(id);
+        return BaseResponse.success(student);
     }
 
     @GetMapping
